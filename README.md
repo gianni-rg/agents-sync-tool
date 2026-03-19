@@ -1,42 +1,49 @@
 # Agents Sync Tool
 
-A .NET global tool that installs and syncs Copilot assets from a `catalog.json` repository.
+A .NET global tool that manages Copilot assets from a `catalog.json` repository.
 
-The current catalog-aware command set is:
+`AgentSync` is now fully catalog-first. The legacy unmanaged `default` workflow is gone. Use `import` or `migrate` to bring existing unmanaged assets under tracked management.
 
-- `AgentSync list`
-- `AgentSync use`
-- `AgentSync sync`
-- `AgentSync default`
+## Command surface
 
-The tool also keeps the older legacy direct-folder sync behavior when run without a subcommand.
+- `AgentSync list` - list catalog entries and install status
+- `AgentSync search` - search by name, description, and tags
+- `AgentSync use` - install one asset and its typed dependencies
+- `AgentSync install` - install all assets or a selected subset
+- `AgentSync sync` - refresh tracked assets from their catalog sources
+- `AgentSync import` or `AgentSync migrate` - discover unmanaged assets and bring them under management
+- `AgentSync remove` - uninstall a managed asset and clear tracked state
+- `AgentSync add` - register a new asset in `catalog.json`
+- `AgentSync push` - push local managed changes back to local or GitHub-backed sources
 
 ## Quick setup
 
-1. Clone this repo and navigate to it
+1. Clone this repo and navigate to it.
+2. Build and install:
 
-1. Build and install:
+   ```powershell
+   dotnet pack
+   dotnet tool install --global --add-source nupkg/ AgentSync
+   ```
 
-    ```powershell
-    dotnet pack
-    dotnet tool install --global --add-source nupkg/ AgentSync
-    ```
+3. Run commands against a catalog repository:
 
-1. Usage:
+   ```powershell
+   # List catalog contents
+   AgentSync list --catalog D:\Personal\agents-catalog --local .
 
-    ```powershell
-    # List catalog contents
-    AgentSync list --catalog D:\Personal\agents-catalog --local .
+   # Install one asset and its dependencies into the repo
+   AgentSync use agent-architect --type agent --catalog D:\Personal\agents-catalog --local .
 
-    # Install one asset and its dependencies
-    AgentSync use agent-architect --type agent --catalog D:\Personal\agents-catalog --local .
+   # Install everything for a user-scoped target
+   AgentSync install --catalog D:\Personal\agents-catalog --scope user
 
-    # Refresh previously installed assets for this repo
-    AgentSync sync --catalog D:\Personal\agents-catalog --local .
+   # Refresh previously installed assets for this repo
+   AgentSync sync --catalog D:\Personal\agents-catalog --local .
 
-    # Sync Visual Studio Code agents to GitHub Copilot CLI agents
-    AgentSync default
-    ```
+   # Import unmanaged assets into catalog-aware state
+   AgentSync import --catalog D:\Personal\agents-catalog --local .
+   ```
 
 ## Catalog model
 
@@ -77,18 +84,74 @@ Supported entry fields today:
 - Reads `catalog.json`
 - Lists assets with install status
 - Installs one asset plus typed dependencies
+- Installs all assets or a named subset for a target
 - Syncs previously installed assets using a local state file
+- Imports unmanaged assets into tracked install state
+- Searches catalog entries by metadata
+- Removes tracked assets from the target
+- Registers new assets in `catalog.json`
+- Pushes local managed changes back to their sources
 - Supports repo and user target scopes from the catalog
 - Supports local and relative source paths
-- Supports `--dry-run` for install and sync operations
-- Preserves the existing `default` command
+- Supports GitHub browser and raw URLs as remote sources
+- Supports `--dry-run` for install, sync, import, remove, and push operations
+- Supports `--force` when installing or importing over unmanaged content
+- Respects `COPILOT_HOME` when resolving `~/.copilot` targets
 
-## Not implemented yet
+## Common workflows
 
-- GitHub URL sources
-- `add`, `push`, `remove`, and `search`
-- richer conflict detection and diff reporting
-- platform-specific target path discovery beyond catalog configuration
+### Repo install
+
+```powershell
+AgentSync use agent-architect --type agent --catalog D:\Personal\agents-catalog --local .
+```
+
+### User install
+
+```powershell
+AgentSync install --catalog D:\Personal\agents-catalog --scope user --platform copilot
+```
+
+### Migration from unmanaged assets
+
+```powershell
+# Auto-scan known locations
+AgentSync import --catalog D:\Personal\agents-catalog --local .
+
+# Or scan a specific unmanaged root
+AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets
+```
+
+### Remote GitHub-backed sources
+
+Catalog entries can point at supported GitHub sources such as:
+
+- `https://github.com/<owner>/<repo>/blob/<branch>/<path>`
+- `https://github.com/<owner>/<repo>/tree/<branch>/<path>`
+- `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>`
+
+Example:
+
+```powershell
+AgentSync add cli-readme `
+  --type instruction `
+  --source https://github.com/octocat/Hello-World/blob/master/README `
+  --description "Remote README example" `
+  --catalog D:\Personal\agents-catalog
+```
+
+For private repositories, set `GITHUB_TOKEN` or `GH_TOKEN` before running `use`, `sync`, or `push`.
+
+## Conflict behavior
+
+- `use`, `install`, and `import` refuse to overwrite unmanaged content unless you pass `--force`
+- `sync` refreshes tracked assets from the catalog source of truth
+- `remove` deletes the installed target and unregisters the asset from tracked state
+
+## Known limitations
+
+- Directory pushes to GitHub update and create files, but do not delete remote files that no longer exist locally.
+- Platform-specific target discovery still depends on the paths configured in `catalog.json`.
 
 ## Contribution
 

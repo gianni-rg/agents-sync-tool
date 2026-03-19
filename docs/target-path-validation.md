@@ -130,10 +130,9 @@ Changes from the original:
 
 ### Notes on cross-platform paths
 
-- `~/.copilot/*` paths work on Windows via AgentSync's `ExpandHomeDirectory` helper, which
-  resolves `~` to `%USERPROFILE%`.
+- `~/.copilot/*` paths work on Windows via AgentSync's path-expansion helpers, which
+  resolve `~` to `%USERPROFILE%` and honor `COPILOT_HOME` when it is set.
 - `%APPDATA%` paths are Windows-specific. On Linux/macOS, VS Code stores its user profile
   under `~/.config/Code/User/` (Linux) or `~/Library/Application Support/Code/User/`
   (macOS). A future enhancement could detect the OS and substitute the right base path.
-- The Copilot CLI respects `COPILOT_HOME` to override `~/.copilot`; AgentSync does not
-  currently read this variable when resolving `~/.copilot/*` targets.
+- AgentSync now reads `COPILOT_HOME` when resolving `~/.copilot/*` targets.
