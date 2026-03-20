@@ -3,10 +3,6 @@
     "AgentSync to local folder": {
       "commandName": "Project",
       "commandLineArgs": ""
-    },
-    "AgentSync default": {
-      "commandName": "Project",
-      "commandLineArgs": "default"
     }
   }
 }

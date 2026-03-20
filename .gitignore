@@ -416,3 +416,15 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# VSCode
+.vscode/
+
+# Agents
+AGENTS.md
+
+# Serena
+.serena/
+
+# OpenSpec
+openspec/
