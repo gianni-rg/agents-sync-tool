@@ -98,6 +98,29 @@ Supported entry fields today:
 - Supports `--force` when installing or importing over unmanaged content
 - Respects `COPILOT_HOME` when resolving `~/.copilot` targets
 
+## Internal architecture
+
+`AgentSync` now uses a single-project modular architecture instead of keeping all logic in `Program.cs`.
+
+- `Program.cs` is bootstrap only
+- `Composition/` contains DI setup, root command assembly, shared CLI options, and command execution helpers
+- `Features/<Command>/` contains one vertical slice per verb such as `list`, `search`, `use`, `install`, `sync`, `import`, `remove`, `add`, and `push`
+- `Domain/` contains shared enums, records, catalog models, install-state models, discovery models, and source models
+- `Application/` contains catalog lookup, context creation, install-state persistence coordination, and workflow orchestration
+- `Infrastructure/` contains filesystem, discovery, local-source, and GitHub-backed source services
+- `Presentation/` contains the terminal rendering abstraction and the `Spectre.Console` implementation
+- `tests/AgentSync.Tests/` contains regression coverage for validation, path resolution, install-state workflows, discovery mapping, GitHub URL parsing, and presentation handoff seams
+
+When adding a new command:
+
+- add a new feature slice under `Features/`
+- register it in `Composition/ServiceCollectionExtensions.cs`
+- keep shared option semantics in `Composition/CommandOptions.cs`
+- place shared models in `Domain/`
+- place reusable orchestration in `Application/`
+- place external side effects in `Infrastructure/`
+- render user-facing output through `Presentation/`
+
 ## Common workflows
 
 ### Repo install
