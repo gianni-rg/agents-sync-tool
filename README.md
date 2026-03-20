@@ -2,7 +2,9 @@
 
 A .NET global tool that manages GitHub Copilot assets from a `catalog.json` repository.
 
-`AgentSync` is fully catalog-first. Use `import` to bring existing unmanaged assets under tracked management.
+> It is an early-stage experimental project. **It is not yet stable and/or production-ready.** The tool is functional, but it is still under active development, debugging, and testing. Data loss, corruption, or unexpected behavior may occur. *Use it at your own risk*.
+
+`AgentSync` is fully catalog-first. Use `import` to bring existing unmanaged assets under tracked management. It supports local and GitHub-backed sources, but it does not yet support other remote source types. It supports both repo-scoped and user-scoped installs, but it does not yet support platform-specific target discovery beyond the configured paths in `catalog.json`. It is designed to be extensible to other asset types, source types, and target platforms in the future.
 
 ## Command surface
 
@@ -30,19 +32,19 @@ A .NET global tool that manages GitHub Copilot assets from a `catalog.json` repo
 
    ```powershell
    # List catalog contents
-   AgentSync list --catalog D:\Personal\agents-catalog --local .
+   AgentSync list --catalog C:\Projects\agents-catalog --local .
 
    # Install one asset and its dependencies into the repo
-   AgentSync use agent-architect --type agent --catalog D:\Personal\agents-catalog --local .
+   AgentSync use agent-architect --type agent --catalog C:\Projects\agents-catalog --local .
 
    # Install everything for a user-scoped target
-   AgentSync install --catalog D:\Personal\agents-catalog --scope user
+   AgentSync install --catalog C:\Projects\agents-catalog --scope user
 
    # Refresh previously installed assets for this repo
-   AgentSync sync --catalog D:\Personal\agents-catalog --local .
+   AgentSync sync --catalog C:\Projects\agents-catalog --local .
 
    # Import unmanaged assets into catalog-aware state
-   AgentSync import --catalog D:\Personal\agents-catalog --local .
+   AgentSync import --catalog C:\Projects\agents-catalog --local .
    ```
 
 ## Catalog model
@@ -126,23 +128,23 @@ When adding a new command:
 ### Repo install
 
 ```powershell
-AgentSync use agent-architect --type agent --catalog D:\Personal\agents-catalog --local .
+AgentSync use agent-architect --type agent --catalog C:\Projects\agents-catalog --local .
 ```
 
 ### User install
 
 ```powershell
-AgentSync install --catalog D:\Personal\agents-catalog --scope user --platform copilot
+AgentSync install --catalog C:\Projects\agents-catalog --scope user --platform copilot
 ```
 
 ### Migration from unmanaged assets
 
 ```powershell
 # Auto-scan known locations
-AgentSync import --catalog D:\Personal\agents-catalog --local .
+AgentSync import --catalog C:\Projects\agents-catalog --local .
 
 # Or scan a specific unmanaged root
-AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets
+AgentSync import --catalog C:\Projects\agents-catalog --local . --source D:\temp\unmanaged-assets
 ```
 
 By default, `import` only migrates discovered assets that already map cleanly to existing catalog entries.
@@ -152,13 +154,13 @@ If you previously automated unmanaged-asset onboarding with `migrate`, replace t
 To automatically add unmapped discovered assets into `catalog.json` before importing them, use `--add-unmapped`:
 
 ```powershell
-AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets --add-unmapped
+AgentSync import --catalog C:\Projects\agents-catalog --local . --source D:\temp\unmanaged-assets --add-unmapped
 ```
 
 Combine `--add-unmapped` with `--dry-run` to preview both planned catalog additions and managed installs without persisting either change:
 
 ```powershell
-AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets --add-unmapped --dry-run
+AgentSync import --catalog C:\Projects\agents-catalog --local . --source D:\temp\unmanaged-assets --add-unmapped --dry-run
 ```
 
 ### Remote GitHub-backed sources
@@ -176,7 +178,7 @@ AgentSync add cli-readme `
   --type instruction `
   --source https://github.com/octocat/Hello-World/blob/master/README `
   --description "Remote README example" `
-  --catalog D:\Personal\agents-catalog
+  --catalog C:\Projects\agents-catalog
 ```
 
 For private repositories, set `GITHUB_TOKEN` or `GH_TOKEN` before running `use`, `sync`, or `push`.
