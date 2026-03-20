@@ -10,7 +10,6 @@ internal sealed class ImportCommandSlice(ImportWorkflowService workflowService, 
     public Command Create()
     {
         var command = new Command("import", "Discover unmanaged assets and bring matching catalog entries under management.");
-        command.Aliases.Add("migrate");
 
         var catalogOption = CommandOptions.CreateCatalogOption();
         var localOption = CommandOptions.CreateLocalOption();
@@ -18,6 +17,10 @@ internal sealed class ImportCommandSlice(ImportWorkflowService workflowService, 
         var scopeOption = CommandOptions.CreateScopeOption();
         var dryRunOption = CommandOptions.CreateDryRunOption();
         var forceOption = CommandOptions.CreateForceOption();
+        var addUnmappedOption = new Option<bool>("--add-unmapped")
+        {
+            Description = "Automatically add unmapped discovered assets to catalog.json before importing them."
+        };
         var sourceOption = new Option<string?>("--source", "-s")
         {
             Description = "Known source alias or path to scan. Supported aliases: auto, vscode, copilot, repo.",
@@ -31,6 +34,7 @@ internal sealed class ImportCommandSlice(ImportWorkflowService workflowService, 
         command.Options.Add(sourceOption);
         command.Options.Add(dryRunOption);
         command.Options.Add(forceOption);
+        command.Options.Add(addUnmappedOption);
         command.SetAction(parseResult => CommandExecution.Execute(
             () => workflowService.Import(
                 parseResult.GetValue(catalogOption),
@@ -39,7 +43,8 @@ internal sealed class ImportCommandSlice(ImportWorkflowService workflowService, 
                 parseResult.GetValue(scopeOption),
                 parseResult.GetValue(sourceOption),
                 parseResult.GetValue(dryRunOption),
-                parseResult.GetValue(forceOption)),
+                parseResult.GetValue(forceOption),
+                parseResult.GetValue(addUnmappedOption)),
             renderer));
 
         return command;

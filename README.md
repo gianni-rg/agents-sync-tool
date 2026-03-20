@@ -1,8 +1,8 @@
 # Agents Sync Tool
 
-A .NET global tool that manages Copilot assets from a `catalog.json` repository.
+A .NET global tool that manages GitHub Copilot assets from a `catalog.json` repository.
 
-`AgentSync` is now fully catalog-first. The legacy unmanaged `default` workflow is gone. Use `import` or `migrate` to bring existing unmanaged assets under tracked management.
+`AgentSync` is fully catalog-first. Use `import` to bring existing unmanaged assets under tracked management.
 
 ## Command surface
 
@@ -11,7 +11,7 @@ A .NET global tool that manages Copilot assets from a `catalog.json` repository.
 - `AgentSync use` - install one asset and its typed dependencies
 - `AgentSync install` - install all assets or a selected subset
 - `AgentSync sync` - refresh tracked assets from their catalog sources
-- `AgentSync import` or `AgentSync migrate` - discover unmanaged assets and bring them under management
+- `AgentSync import` - discover unmanaged assets and bring them under management
 - `AgentSync remove` - uninstall a managed asset and clear tracked state
 - `AgentSync add` - register a new asset in `catalog.json`
 - `AgentSync push` - push local managed changes back to local or GitHub-backed sources
@@ -22,7 +22,7 @@ A .NET global tool that manages Copilot assets from a `catalog.json` repository.
 2. Build and install:
 
    ```powershell
-   dotnet pack
+   dotnet pack src\AgentSync\AgentSync.csproj
    dotnet tool install --global --add-source nupkg/ AgentSync
    ```
 
@@ -100,26 +100,26 @@ Supported entry fields today:
 
 ## Internal architecture
 
-`AgentSync` now uses a single-project modular architecture instead of keeping all logic in `Program.cs`.
+`AgentSync` is a single-project modular architecture under `src\AgentSync`.
 
-- `Program.cs` is bootstrap only
-- `Composition/` contains DI setup, root command assembly, shared CLI options, and command execution helpers
-- `Features/<Command>/` contains one vertical slice per verb such as `list`, `search`, `use`, `install`, `sync`, `import`, `remove`, `add`, and `push`
-- `Domain/` contains shared enums, records, catalog models, install-state models, discovery models, and source models
-- `Application/` contains catalog lookup, context creation, install-state persistence coordination, and workflow orchestration
-- `Infrastructure/` contains filesystem, discovery, local-source, and GitHub-backed source services
-- `Presentation/` contains the terminal rendering abstraction and the `Spectre.Console` implementation
+- `src/AgentSync/Program.cs` is bootstrap only
+- `src/AgentSync/Composition/` contains DI setup, root command assembly, shared CLI options, and command execution helpers
+- `src/AgentSync/Features/<Command>/` contains one vertical slice per verb such as `list`, `search`, `use`, `install`, `sync`, `import`, `remove`, `add`, and `push`
+- `src/AgentSync/Domain/` contains shared enums, records, catalog models, install-state models, discovery models, and source models
+- `src/AgentSync/Application/` contains catalog lookup, context creation, install-state persistence coordination, and workflow orchestration
+- `src/AgentSync/Infrastructure/` contains filesystem, discovery, local-source, and GitHub-backed source services
+- `src/AgentSync/Presentation/` contains the terminal rendering abstraction and the `Spectre.Console` implementation
 - `tests/AgentSync.Tests/` contains regression coverage for validation, path resolution, install-state workflows, discovery mapping, GitHub URL parsing, and presentation handoff seams
 
 When adding a new command:
 
-- add a new feature slice under `Features/`
-- register it in `Composition/ServiceCollectionExtensions.cs`
-- keep shared option semantics in `Composition/CommandOptions.cs`
-- place shared models in `Domain/`
-- place reusable orchestration in `Application/`
-- place external side effects in `Infrastructure/`
-- render user-facing output through `Presentation/`
+- add a new feature slice under `src/AgentSync/Features/`
+- register it in `src/AgentSync/Composition/ServiceCollectionExtensions.cs`
+- keep shared option semantics in `src/AgentSync/Composition/CommandOptions.cs`
+- place shared models in `src/AgentSync/Domain/`
+- place reusable orchestration in `src/AgentSync/Application/`
+- place external side effects in `src/AgentSync/Infrastructure/`
+- render user-facing output through `src/AgentSync/Presentation/`
 
 ## Common workflows
 
@@ -143,6 +143,22 @@ AgentSync import --catalog D:\Personal\agents-catalog --local .
 
 # Or scan a specific unmanaged root
 AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets
+```
+
+By default, `import` only migrates discovered assets that already map cleanly to existing catalog entries.
+
+If you previously automated unmanaged-asset onboarding with `migrate`, replace those invocations with `import`. The onboarding workflow is the same, but `import` is now the only exposed command for it.
+
+To automatically add unmapped discovered assets into `catalog.json` before importing them, use `--add-unmapped`:
+
+```powershell
+AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets --add-unmapped
+```
+
+Combine `--add-unmapped` with `--dry-run` to preview both planned catalog additions and managed installs without persisting either change:
+
+```powershell
+AgentSync import --catalog D:\Personal\agents-catalog --local . --source D:\temp\unmanaged-assets --add-unmapped --dry-run
 ```
 
 ### Remote GitHub-backed sources

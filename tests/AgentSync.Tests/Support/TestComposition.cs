@@ -55,6 +55,7 @@ internal sealed class TestComposition : IDisposable
             renderer);
         ImportWorkflowService = new ImportWorkflowService(
             CatalogContextFactory,
+            CatalogRepository,
             InstallStateRepository,
             DiscoveryService,
             AssetInstallationService,

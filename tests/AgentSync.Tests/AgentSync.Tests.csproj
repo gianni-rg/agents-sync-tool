@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AgentSync.csproj" />
+    <ProjectReference Include="..\..\src\AgentSync\AgentSync.csproj" />
   </ItemGroup>
 
 </Project>
