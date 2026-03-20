@@ -417,6 +417,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# VSCode
+.vscode/
+
 # Agents
 AGENTS.md
 
