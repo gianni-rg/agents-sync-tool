@@ -192,6 +192,10 @@ For private repositories, set `GITHUB_TOKEN` or `GH_TOKEN` before running `use`,
 - Directory pushes to GitHub update and create files, but do not delete remote files that no longer exist locally.
 - Platform-specific target discovery still depends on the paths configured in `catalog.json`.
 
+## Acknowledgements
+
+Inspired by [The Library Meta-Skill](https://github.com/disler/the-library) and by the idea of having a structured way to share agents, skills, and prompts across projects and teams.
+
 ## Contribution
 
 The project is constantly evolving and contributions are warmly welcomed.
